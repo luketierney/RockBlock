@@ -28,21 +28,23 @@ void setup() {
     pinMode(inpin, INPUT);
   }
   Serial.begin(19200);
+  Serial1.begin(9600);
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-  digitalWrite(2, HIGH);
+  digitalWrite(SleepWake, HIGH);
   delay(15000);
   if(AT("AT") == "OK"){
-    Serial.println("Luke OK");
+    Serial1.println("Luke OK");
     digitalWrite(ReadyG, HIGH);
     digitalWrite(ReadyR, LOW);
   }
   else{
     digitalWrite(ReadyG, LOW);
     digitalWrite(ReadyR, HIGH);
-    Serial.println(AT("AT"));
+    Serial1.println("Not OK");
+    Serial1.println(AT("AT"));
   }
   
 
