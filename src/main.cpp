@@ -33,12 +33,17 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
   digitalWrite(2, HIGH);
-  /*if(AT("AT") == "OK"){
+  delay(15000);
+  if(AT("AT") == "OK"){
     Serial.println("Luke OK");
+    digitalWrite(ReadyG, HIGH);
+    digitalWrite(ReadyR, LOW);
   }
   else{
+    digitalWrite(ReadyG, LOW);
+    digitalWrite(ReadyR, HIGH);
     Serial.println(AT("AT"));
   }
-  */
+  
 
 }
