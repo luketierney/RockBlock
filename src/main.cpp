@@ -6,7 +6,12 @@ int NetReadyG = 10;
 int MsgStateR = 9;
 int MsgStateY = 8;
 int MsgStateG = 7;
-int SleepWake;
+int SleepWake = 6;
+int TXD = 5;
+int NetAV = 4;
+int RTS = 3;
+int CTS = 2;
+int RXD = 1;
 String AT(String x){
   Serial.println(x + "\r");
   delay(100);
@@ -14,10 +19,14 @@ String AT(String x){
 }
 void setup() {
   // put your setup code here, to run once:
-  for(int x = 7; x <= 13; x += 1){
-    pinMode(x, OUTPUT);
+  int out[] = {5,3,6,7,8,9,10,11,12,13};
+  int in[] = {4,2,1};
+  for(int outpin: out){
+    pinMode(outpin, OUTPUT);
   }
-
+  for(int inpin : in){
+    pinMode(inpin, INPUT);
+  }
   Serial.begin(19200);
 }
 
