@@ -1,12 +1,12 @@
 #include <Arduino.h>
-int ReadyRed = 13;
-int ReadyGreen = 12;
-int NetReadyRed = 11;
-int NetReadyGreen = 10;
-int MsgStateRed = 9;
-int MsgStateYellow = 8;
-int MsgStateGreen = 7;
-
+int ReadyR = 13;
+int ReadyG = 12;
+int NetReadyR = 11;
+int NetReadyG = 10;
+int MsgStateR = 9;
+int MsgStateY = 8;
+int MsgStateG = 7;
+int SleepWake;
 String AT(String x){
   Serial.println(x + "\r");
   delay(100);
