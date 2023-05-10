@@ -14,6 +14,7 @@ int CTS = 2;
 int RXD = 1;
 String AT(String x){
   Serial.println(x + '\r');
+  Serial.println(Serial.read());
   delay(10000);
   return String(Serial.read());
 }
@@ -28,13 +29,10 @@ void setup() {
     pinMode(inpin, INPUT);
   }
   Serial.begin(19200);
-  Serial.println("TEST");
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-  digitalWrite(SleepWake, HIGH);
-  delay(15000);
   if(AT("AT") == "OK"){
     Serial.println("Luke OK");
     digitalWrite(ReadyG, HIGH);
