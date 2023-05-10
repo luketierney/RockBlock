@@ -1,4 +1,8 @@
 #include <Arduino.h>
+#include <IridiumSBD.h>
+#define IriduimSerial Serial3
+#define DIAGNOSTICS true
+IridiumSBD modem(IriduimSerial);
 int ReadyR = 13;
 int ReadyG = 12;
 int NetReadyR = 11;
@@ -28,20 +32,26 @@ void setup() {
   for(int inpin : in){
     pinMode(inpin, INPUT);
   }
-  Serial.begin(19200);
+  Serial.begin(115200);
+  IriduimSerial.begin(19200);
+  Serial.println("TEST");
+  modem.setPowerProfile(IridiumSBD::DEFAULT_POWER_PROFILE);
+  if (modem.begin() != ISBD_SUCCESS){
+    Serial.println("Couldn't begin modem operations.");
+  }
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
   if(AT("AT") == "OK"){
-    Serial.println("Luke OK");
+    IriduimSerial.println("Luke OK");
     digitalWrite(ReadyG, HIGH);
     digitalWrite(ReadyR, LOW);
   }
   else{
     digitalWrite(ReadyG, LOW);
     digitalWrite(ReadyR, HIGH);
-    Serial.println("Not OK");
+    IriduimSerial.println("Not OK");
     Serial.println("LUKE" + AT("AT"));
   }
   
