@@ -10,7 +10,7 @@ int NetReadyG = 10;
 int MsgStateR = 9;
 int MsgStateY = 8;
 int MsgStateG = 7;
-//int SleepWake = 6;
+int SleepWake = 6;
 int TXD = 18;
 int NetAV = 4;
 int RTS = 3;
@@ -18,8 +18,9 @@ int CTS = 2;
 int RXD = 19;
 String AT(String x){
   Serial.println(x + '\r');
-  Serial.println(Serial.read());
-  delay(10000);
+  delay(1000);
+  String y = String(IriduimSerial.read());
+  Serial.println(y);
   return String(Serial.read());
 }
 uint8_t buffer[200] = 
@@ -43,7 +44,7 @@ void setup() {
     Serial.println("Couldn't begin modem operations.");
     exit(0);
   }
-
+  Serial.print("LUKE" + IriduimSerial.read());
   int err = modem.getSignalQuality(signalQuality);
   if (err != 0)
   {
@@ -58,6 +59,7 @@ void setup() {
 //static bool messageSent = false;
 
 void loop() {
+  digitalWrite(6, HIGH);
   // put your main code here, to run repeatedly:
   /*int err;
   if (!messageSent || modem.getWaitingMessageCount() > 0)
