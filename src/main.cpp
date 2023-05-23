@@ -57,7 +57,9 @@ String AT(String x){
   return String(Serial.read());
 }
 uint8_t buffer[200] = 
-{ 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89 };
+{ 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89 };  
+int SignalQuality = -1;
+
 void setup() {
   // put your setup code here, to run once:
   int out[] = {TXD,RTS,MsgStateG,MsgStateY,MsgStateR,NetReadyG,NetReadyR,ReadyR,ReadyG};
@@ -72,17 +74,56 @@ void setup() {
   while (!Serial);
   IriduimSerial.begin(19200);
   digitalWrite(6, HIGH);
+  modem.adjustATTimeout(10);
+  modem.adjustSendReceiveTimeout(20);
+}
+//static bool messageSent = false;
+int err;
+void loop() {
+  while (true){
   if (modem.begin() != ISBD_SUCCESS){
     Serial.println("Couldn't begin modem operations.");
     exit(0);
+    delay(6000);
+    continue;
   }
-  Serial.print("LUKE" + IriduimSerial.read());
-}
-//static bool messageSent = false;
-
-void loop() {
-  
-}
+  err = modem.getSignalQuality(SignalQuality);
+  if ((err != ISBD_SUCCESS) or (SignalQuality <= 1) ){
+    Serial.println("SignalQuality failed: error");
+    digitalWrite(NetReadyR, HIGH);
+    digitalWrite(NetReadyG, LOW);
+    delay(60000);
+    continue;
+  }
+  digitalWrite(NetReadyG, HIGH);
+  digitalWrite(NetReadyR, LOW);
+  digitalWrite(MsgStateY, HIGH);
+  size_t bufferSize = sizeof(buffer);
+  err = modem.sendReceiveSBDText("Test", buffer, bufferSize);
+  if(err != ISBD_SUCCESS){
+    Serial.println("Send failed: error");
+    digitalWrite(MsgStateY, LOW);
+    digitalWrite(MsgStateR, HIGH);
+    digitalWrite(MsgStateG, LOW);
+    continue;
+  }
+  digitalWrite(MsgStateY, LOW);
+  digitalWrite(MsgStateG, HIGH);
+  digitalWrite(MsgStateR, LOW);
+  Serial.print("Inbound buffer size is ");
+  Serial.println(bufferSize);
+  for (int i=0; i<bufferSize; ++i){
+        Serial.print(buffer[i], HEX);
+        if (isprint(buffer[i]))
+        {
+          Serial.print("(");
+          Serial.write(buffer[i]);
+          Serial.print(")");
+        }
+        Serial.print(" ");
+      }
+  delay(500);
+}}
 #if DIAGNOSTICS
 void ISBDConsoleCallback(IridiumSBD *device, char c)
 {
