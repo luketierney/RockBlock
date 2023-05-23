@@ -88,13 +88,13 @@ void loop() {
     continue;
   }
   err = modem.getSignalQuality(SignalQuality);
-  if ((err != ISBD_SUCCESS) or (SignalQuality <= 1) ){
+  /*if ((err != ISBD_SUCCESS) or (SignalQuality <= 1) ){
     Serial.println("SignalQuality failed: error");
     digitalWrite(NetReadyR, HIGH);
     digitalWrite(NetReadyG, LOW);
     delay(60000);
     continue;
-  }
+  }*/
   digitalWrite(NetReadyG, HIGH);
   digitalWrite(NetReadyR, LOW);
   digitalWrite(MsgStateY, HIGH);
