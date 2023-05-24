@@ -98,8 +98,7 @@ void loop() {
   digitalWrite(NetReadyG, HIGH);
   digitalWrite(NetReadyR, LOW);
   digitalWrite(MsgStateY, HIGH);
-  size_t bufferSize = sizeof(buffer);
-  err = modem.sendReceiveSBDText("Test", buffer, bufferSize);
+  err = modem.sendSBDText("Test", buffe);
   if(err != ISBD_SUCCESS){
     Serial.println("Send failed: error");
     digitalWrite(MsgStateY, LOW);
@@ -110,17 +109,6 @@ void loop() {
   digitalWrite(MsgStateY, LOW);
   digitalWrite(MsgStateG, HIGH);
   digitalWrite(MsgStateR, LOW);
-  Serial.print("Inbound buffer size is ");
-  Serial.println(bufferSize);
-  for (int i=0; i<bufferSize; ++i){
-        Serial.print(buffer[i], HEX);
-        if (isprint(buffer[i])){
-          Serial.print("(");
-          Serial.write(buffer[i]);
-          Serial.print(")");
-        }
-        Serial.print(" ");
-    }
   delay(500);
 }}
 #if DIAGNOSTICS
