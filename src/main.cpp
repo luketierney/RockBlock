@@ -3,7 +3,7 @@
 #define IriduimSerial Serial3
 #define DIAGNOSTICS true
 IridiumSBD modem(IriduimSerial);
-int failLimit = 7;
+int failLimit = 5;
 int ReadyR = 13;
 int ReadyG = 12;
 int NetReadyR = 11;
@@ -76,27 +76,34 @@ void setup() {
   IriduimSerial.begin(19200);
   digitalWrite(6, HIGH);
   modem.adjustATTimeout(10);
-  modem.adjustSendReceiveTimeout(20);
+  modem.adjustSendReceiveTimeout(5);
 }
 //static bool messageSent = false;
 int count = 0;
 int err;
 void loop() {
   while (true){
+  delay(500);
   count += 1;
   if (count > failLimit){
     count = 0;
     Serial.println("Sleeping");
     delay(100);
-    modem.sleep();
-    delay(600000);
+    Serial.print("LUKE102-");
+    Serial.println(modem.sleep());
+    delay(600); 
   }
-  if (modem.begin() != ISBD_SUCCESS){
+  if(modem.isAsleep() == ISBD_IS_ASLEEP){
+  if(modem.begin() != ISBD_SUCCESS){
+    digitalWrite(ReadyR, HIGH);
+    digitalWrite(ReadyG, LOW);
     Serial.println("Couldn't begin modem operations.");
     exit(0);
     delay(6000);
     continue;
-  }
+  }}
+  digitalWrite(ReadyG, HIGH);
+  digitalWrite(ReadyR, LOW);
   err = modem.getSignalQuality(SignalQuality);
   /*if ((err != ISBD_SUCCESS) or (SignalQuality <= 1) ){
     Serial.println("SignalQuality failed: error");
@@ -107,6 +114,8 @@ void loop() {
   }*/
   digitalWrite(NetReadyG, HIGH);
   digitalWrite(NetReadyR, LOW);
+  digitalWrite(MsgStateG, LOW);
+  digitalWrite(MsgStateR, LOW);
   digitalWrite(MsgStateY, HIGH);
   err = modem.sendSBDText("Test");
   if(err != ISBD_SUCCESS){
@@ -114,7 +123,7 @@ void loop() {
     digitalWrite(MsgStateY, LOW);
     digitalWrite(MsgStateR, HIGH);
     digitalWrite(MsgStateG, LOW);
-    delay(100);
+    delay(500);
     continue;
   }
   digitalWrite(MsgStateY, LOW);
