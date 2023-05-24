@@ -112,7 +112,7 @@ private:
    int remainingMessages;
    bool asleep;
    bool reentrant;
-   int  sleepPin;
+   int  sleepPin = 6;
    int  ringPin;
    bool msstmWorkaroundRequested;
    bool ringAlertsEnabled;

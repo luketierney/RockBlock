@@ -268,13 +268,7 @@ int IridiumSBD::internalBegin()
    if (!modemAlive)
    {
       diagprint(F("No modem detected.\r\n"));
-      digitalWrite(13, HIGH);
-      digitalWrite(12, LOW);
       return ISBD_NO_MODEM_DETECTED;
-   }
-   else{
-      digitalWrite(12, HIGH);
-      digitalWrite(13, LOW);
    }
 
    // The usual initialization sequence
