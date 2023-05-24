@@ -83,13 +83,14 @@ int count = 0;
 int err;
 void loop() {
   while (true){
-count += 1
-if (count > failLimit){
- count = 0;
- modem.sleep();
- Serial.println("Sleeping");
- delay(600000);
-}
+  count += 1;
+  if (count > failLimit){
+    count = 0;
+    Serial.println("Sleeping");
+    delay(100);
+    modem.sleep();
+    delay(600000);
+  }
   if (modem.begin() != ISBD_SUCCESS){
     Serial.println("Couldn't begin modem operations.");
     exit(0);
@@ -113,6 +114,7 @@ if (count > failLimit){
     digitalWrite(MsgStateY, LOW);
     digitalWrite(MsgStateR, HIGH);
     digitalWrite(MsgStateG, LOW);
+    delay(100);
     continue;
   }
   digitalWrite(MsgStateY, LOW);
