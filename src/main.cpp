@@ -3,6 +3,7 @@
 #define IriduimSerial Serial3
 #define DIAGNOSTICS true
 IridiumSBD modem(IriduimSerial);
+int failLimit = 7;
 int ReadyR = 13;
 int ReadyG = 12;
 int NetReadyR = 11;
@@ -78,9 +79,17 @@ void setup() {
   modem.adjustSendReceiveTimeout(20);
 }
 //static bool messageSent = false;
+int count = 0;
 int err;
 void loop() {
   while (true){
+count += 1
+if (count > failLimit){
+ count = 0;
+ modem.sleep();
+ Serial.println("Sleeping");
+ delay(600000);
+}
   if (modem.begin() != ISBD_SUCCESS){
     Serial.println("Couldn't begin modem operations.");
     exit(0);
@@ -98,7 +107,7 @@ void loop() {
   digitalWrite(NetReadyG, HIGH);
   digitalWrite(NetReadyR, LOW);
   digitalWrite(MsgStateY, HIGH);
-  err = modem.sendSBDText("Test", buffe);
+  err = modem.sendSBDText("Test");
   if(err != ISBD_SUCCESS){
     Serial.println("Send failed: error");
     digitalWrite(MsgStateY, LOW);
@@ -109,7 +118,7 @@ void loop() {
   digitalWrite(MsgStateY, LOW);
   digitalWrite(MsgStateG, HIGH);
   digitalWrite(MsgStateR, LOW);
-  delay(500);
+  count = failLimit;
 }}
 #if DIAGNOSTICS
 void ISBDConsoleCallback(IridiumSBD *device, char c)
