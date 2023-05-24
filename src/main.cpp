@@ -3,7 +3,7 @@
 #define IriduimSerial Serial3
 #define DIAGNOSTICS true
 IridiumSBD modem(IriduimSerial);
-int failLimit = 5;
+int failLimit = 50;
 int ReadyR = 13;
 int ReadyG = 12;
 int NetReadyR = 11;
@@ -62,6 +62,7 @@ uint8_t buffer[200] =
 int SignalQuality = -1;
 
 void setup() {
+  digitalWrite(NetReadyR,LOW);
   // put your setup code here, to run once:
   int out[] = {TXD,RTS,MsgStateG,MsgStateY,MsgStateR,NetReadyG,NetReadyR,ReadyR,ReadyG};
   int in[] = {NetAV,CTS,RXD};
@@ -75,8 +76,8 @@ void setup() {
   while (!Serial);
   IriduimSerial.begin(19200);
   digitalWrite(6, HIGH);
-  modem.adjustATTimeout(10);
-  modem.adjustSendReceiveTimeout(5);
+  modem.adjustATTimeout(30);
+  modem.adjustSendReceiveTimeout(300);
 }
 //static bool messageSent = false;
 int count = 0;
@@ -89,11 +90,10 @@ void loop() {
     count = 0;
     Serial.println("Sleeping");
     delay(100);
-    Serial.print("LUKE102-");
-    Serial.println(modem.sleep());
-    delay(600); 
+    modem.sleep();
+    delay(600000); 
   }
-  if(modem.isAsleep() == ISBD_IS_ASLEEP){
+  if(modem.isAsleep()){
   if(modem.begin() != ISBD_SUCCESS){
     digitalWrite(ReadyR, HIGH);
     digitalWrite(ReadyG, LOW);
@@ -105,19 +105,19 @@ void loop() {
   digitalWrite(ReadyG, HIGH);
   digitalWrite(ReadyR, LOW);
   err = modem.getSignalQuality(SignalQuality);
-  /*if ((err != ISBD_SUCCESS) or (SignalQuality <= 1) ){
+  if ((err != ISBD_SUCCESS) or (SignalQuality <= 1) ){
     Serial.println("SignalQuality failed: error");
     digitalWrite(NetReadyR, HIGH);
     digitalWrite(NetReadyG, LOW);
-    delay(60000);
+    delay(5000);
     continue;
-  }*/
+  }
   digitalWrite(NetReadyG, HIGH);
   digitalWrite(NetReadyR, LOW);
   digitalWrite(MsgStateG, LOW);
   digitalWrite(MsgStateR, LOW);
   digitalWrite(MsgStateY, HIGH);
-  err = modem.sendSBDText("Test");
+  err = modem.sendSBDText("Mr. Aubrey, This was sent via satellite using an Arduino Final Project");
   if(err != ISBD_SUCCESS){
     Serial.println("Send failed: error");
     digitalWrite(MsgStateY, LOW);

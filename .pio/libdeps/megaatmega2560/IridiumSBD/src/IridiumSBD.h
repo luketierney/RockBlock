@@ -76,7 +76,7 @@ public:
    void useMSSTMWorkaround(bool useMSSTMWorkAround); // true to use workaround from Iridium Alert 5/7/13
    void enableRingAlerts(bool enable);
 
-   IridiumSBD(Stream &str, int sleepPinNo = -1, int ringPinNo = -1) :
+   IridiumSBD(Stream &str, int sleepPinNo = 6, int ringPinNo = -1) :
       stream(str),
       sbdixInterval(ISBD_USB_SBDIX_INTERVAL),
       atTimeout(ISBD_DEFAULT_AT_TIMEOUT),
