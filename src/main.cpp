@@ -1,11 +1,15 @@
 #include <Arduino.h>
 #include <IridiumSBD.h>
+#include <dht_nonblocking.h>
 #define IriduimSerial Serial3
 #define DIAGNOSTICS true
+#define DHT_SENSOR_TYPE DHT_TYPE_11
 IridiumSBD modem(IriduimSerial);
-int failLimit = 50;
+int failLimit = 7;
+int TempR = 23;
+int TempG = 26;
 int ReadyR = 13;
-int ReadyG = 12;
+int ReadyG = 1;
 int NetReadyR = 11;
 int NetReadyG = 10;
 int MsgStateR = 9;
@@ -17,52 +21,31 @@ int NetAV = 4;
 int RTS = 3;
 int CTS = 2;
 int RXD = 19;
-String Respond(){
-  const unsigned int MAX_MESSAGE_LENGTH = 12;
-  while (IriduimSerial.available() > 0)
- {
-   //Create a place to hold the incoming message
-   static char message[MAX_MESSAGE_LENGTH];
-   static unsigned int message_pos = 0;
+static const int DHT_SENSOR_PIN = 22;
+DHT_nonblocking dht_sensor( DHT_SENSOR_PIN, DHT_SENSOR_TYPE );
 
-   //Read the next available byte in the serial receive buffer
-   char inByte = IriduimSerial.read();
+static bool measure_environment( float *temperature, float *humidity )
+{
+  static unsigned long measurement_timestamp = millis( );
 
-   //Message coming in (check not terminating character) and guard for over message size
-   if ( inByte != '\n' && (message_pos < MAX_MESSAGE_LENGTH - 1) )
-   {
-     //Add the incoming byte to our message
-     message[message_pos] = inByte;
-     message_pos++;
-   }
-   //Full message received...
-   else
-   {
-     //Add null character to string
-     message[message_pos] = '\0';
+  /* Measure once every four seconds. */
+  if( millis( ) - measurement_timestamp > 0ul )
+  {
+    if( dht_sensor.measure( temperature, humidity ) == true )
+    {
+      measurement_timestamp = millis( );
+      return( true );
+    }
+  }
 
-     //Print the message (or do other things)
-     message_pos = 0;
-     return(message);
-
-     //Reset for the next message
-   }
- }
- return "None";
+  return( false );
 }
-String AT(String x){
-  Serial.println(x + '\r');
-  delay(1000);
-  String y = String(IriduimSerial.read());
-  Serial.println(y);
-  return String(Serial.read());
-}
+
 uint8_t buffer[200] = 
 { 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89 };  
 int SignalQuality = -1;
 
 void setup() {
-  digitalWrite(NetReadyR,LOW);
   // put your setup code here, to run once:
   int out[] = {TXD,RTS,MsgStateG,MsgStateY,MsgStateR,NetReadyG,NetReadyR,ReadyR,ReadyG};
   int in[] = {NetAV,CTS,RXD};
@@ -79,7 +62,6 @@ void setup() {
   modem.adjustATTimeout(30);
   modem.adjustSendReceiveTimeout(300);
 }
-//static bool messageSent = false;
 int count = 0;
 int err;
 void loop() {
@@ -89,23 +71,45 @@ void loop() {
   if (count > failLimit){
     count = 0;
     Serial.println("Sleeping");
+    digitalWrite(ReadyG, LOW);
+    digitalWrite(ReadyR, LOW);
+    for(int i = 0; i <= 5; i+= 1){
+     digitalWrite(ReadyR, HIGH); 
+     delay(500);
+     digitalWrite(ReadyR, LOW);
+    }
+    digitalWrite(ReadyR, HIGH);
     delay(100);
     modem.sleep();
     delay(600000); 
   }
+  float temperature;
+  float humidity;
+  while(true){
+  if(!measure_environment( &temperature, &humidity )){
+    digitalWrite(TempR, HIGH);
+    digitalWrite(TempG, LOW);
+    continue;
+  }
+  else{
+    break;
+  }
+  }
+  digitalWrite(TempG, HIGH);
+  digitalWrite(TempR, LOW);
+  Serial.println(String(temperature) + " deg. C");
   if(modem.isAsleep()){
   if(modem.begin() != ISBD_SUCCESS){
     digitalWrite(ReadyR, HIGH);
     digitalWrite(ReadyG, LOW);
     Serial.println("Couldn't begin modem operations.");
-    exit(0);
     delay(6000);
     continue;
   }}
   digitalWrite(ReadyG, HIGH);
   digitalWrite(ReadyR, LOW);
   err = modem.getSignalQuality(SignalQuality);
-  if ((err != ISBD_SUCCESS) or (SignalQuality <= 1) ){
+  if ((err != ISBD_SUCCESS) or (SignalQuality <= 1)){
     Serial.println("SignalQuality failed: error");
     digitalWrite(NetReadyR, HIGH);
     digitalWrite(NetReadyG, LOW);
@@ -117,7 +121,9 @@ void loop() {
   digitalWrite(MsgStateG, LOW);
   digitalWrite(MsgStateR, LOW);
   digitalWrite(MsgStateY, HIGH);
-  err = modem.sendSBDText("Mr. Aubrey, This was sent via satellite using an Arduino Final Project");
+  String str = String(String(temperature) + " deg. C");
+  const char * c = str.c_str();
+  err = modem.sendSBDText(c);
   if(err != ISBD_SUCCESS){
     Serial.println("Send failed: error");
     digitalWrite(MsgStateY, LOW);
@@ -129,7 +135,9 @@ void loop() {
   digitalWrite(MsgStateY, LOW);
   digitalWrite(MsgStateG, HIGH);
   digitalWrite(MsgStateR, LOW);
-  count = failLimit;
+  while (true){
+    delay(100);
+  }
 }}
 #if DIAGNOSTICS
 void ISBDConsoleCallback(IridiumSBD *device, char c)
