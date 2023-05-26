@@ -136,10 +136,8 @@ void loop() {
   digitalWrite(MsgStateY, LOW);
   digitalWrite(MsgStateG, HIGH);
   digitalWrite(MsgStateR, LOW);
-  while (true){
-    delay(100);
-  }
-}}
+  count = failLimit;
+}
 #if DIAGNOSTICS
 void ISBDConsoleCallback(IridiumSBD *device, char c)
 {
