@@ -73,15 +73,16 @@ void loop() {
     Serial.println("Sleeping");
     digitalWrite(ReadyG, LOW);
     digitalWrite(ReadyR, LOW);
-    for(int i = 0; i <= 5; i+= 1){
+    for(int i = 0; i <= 5; i += 1){
      digitalWrite(ReadyR, HIGH); 
-     delay(500);
+     delay(250);
      digitalWrite(ReadyR, LOW);
+     delay(250);
     }
     digitalWrite(ReadyR, HIGH);
     delay(100);
     modem.sleep();
-    delay(600000); 
+    delay(600000-(250*5)); 
   }
   float temperature;
   float humidity;
