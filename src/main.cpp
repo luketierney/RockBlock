@@ -9,7 +9,7 @@ int failLimit = 7;
 int TempR = 23;
 int TempG = 26;
 int ReadyR = 13;
-int ReadyG = 1;
+int ReadyG = 12;
 int NetReadyR = 11;
 int NetReadyG = 10;
 int MsgStateR = 9;
@@ -24,6 +24,23 @@ int RXD = 19;
 static const int DHT_SENSOR_PIN = 22;
 DHT_nonblocking dht_sensor( DHT_SENSOR_PIN, DHT_SENSOR_TYPE );
 
+void mySleep(float j){
+  count = 0;
+  Serial.println("Sleeping");
+  for(int outpin : out){
+    digitalWrite(outpin, LOW);
+  }
+  for(int i = 0; i <= 5; i += 1){
+    digitalWrite(ReadyR, HIGH); 
+    delay(250);
+    digitalWrite(ReadyR, LOW);
+    delay(250);
+  }
+  digitalWrite(ReadyR, HIGH);
+  delay(100);
+  modem.sleep();
+  delay(j);
+}
 static bool measure_environment( float *temperature, float *humidity )
 {
   static unsigned long measurement_timestamp = millis( );
@@ -44,11 +61,10 @@ static bool measure_environment( float *temperature, float *humidity )
 uint8_t buffer[200] = 
 { 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89 };  
 int SignalQuality = -1;
-
+int out[] = {TXD,RTS,MsgStateG,MsgStateY,MsgStateR,NetReadyG,NetReadyR,ReadyR,ReadyG, TempG, TempR};
+int in[] = {NetAV,CTS,RXD};
 void setup() {
   // put your setup code here, to run once:
-  int out[] = {TXD,RTS,MsgStateG,MsgStateY,MsgStateR,NetReadyG,NetReadyR,ReadyR,ReadyG};
-  int in[] = {NetAV,CTS,RXD};
   for(int outpin : out){
     pinMode(outpin, OUTPUT);
   }
@@ -58,7 +74,6 @@ void setup() {
   Serial.begin(115200);
   while (!Serial);
   IriduimSerial.begin(19200);
-  digitalWrite(6, HIGH);
   modem.adjustATTimeout(30);
   modem.adjustSendReceiveTimeout(300);
 }
@@ -69,20 +84,7 @@ void loop() {
   delay(500);
   count += 1;
   if (count > failLimit){
-    count = 0;
-    Serial.println("Sleeping");
-    digitalWrite(ReadyG, LOW);
-    digitalWrite(ReadyR, LOW);
-    for(int i = 0; i <= 5; i += 1){
-     digitalWrite(ReadyR, HIGH); 
-     delay(250);
-     digitalWrite(ReadyR, LOW);
-     delay(250);
-    }
-    digitalWrite(ReadyR, HIGH);
-    delay(100);
-    modem.sleep();
-    delay(600000-(250*5)); 
+     mySleep(600000);
   }
   float temperature;
   float humidity;
@@ -123,8 +125,8 @@ void loop() {
   digitalWrite(MsgStateR, LOW);
   digitalWrite(MsgStateY, HIGH);
   String str = String(String(temperature) + " deg. C");
-  const char * c = str.c_str();
-  err = modem.sendSBDText(c);
+  const char * e = str.c_str();
+  err = modem.sendSBDText(e);
   if(err != ISBD_SUCCESS){
     Serial.println("Send failed: error");
     digitalWrite(MsgStateY, LOW);
@@ -136,16 +138,14 @@ void loop() {
   digitalWrite(MsgStateY, LOW);
   digitalWrite(MsgStateG, HIGH);
   digitalWrite(MsgStateR, LOW);
-  count = failLimit;
-}
+  mySleep(600000);
+}}
 #if DIAGNOSTICS
-void ISBDConsoleCallback(IridiumSBD *device, char c)
-{
+void ISBDConsoleCallback(IridiumSBD *device, char c){
   Serial.write(c);
 }
 
-void ISBDDiagsCallback(IridiumSBD *device, char c)
-{
+void ISBDDiagsCallback(IridiumSBD *device, char c){
   Serial.write(c);
 }
 #endif
